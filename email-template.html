@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Saint Vision</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+        .tagline {
+            color: #6b7280;
+            font-size: 16px;
+        }
+        .content {
+            margin: 30px 0;
+        }
+        .welcome-title {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .confirmation-text {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transition: transform 0.2s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .features {
+            margin: 30px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px 0;
+        }
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            color: #6366f1;
+        }
+        .feature-text {
+            color: #4b5563;
+            font-size: 14px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .security-note {
+            background: #f3f4f6;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .security-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        .alternative-link {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .alternative-text {
+            color: #6b7280;
+            font-size: 12px;
+            margin: 0;
+            word-break: break-all;
+        }
+        .redirect-notice {
+            background: #e0f2fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .redirect-text {
+            color: #01579b;
+            font-size: 14px;
+            margin: 0;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .cta-button {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Saint Vision</div>
+            <div class="tagline">Your AI-Powered Strategic Intelligence Platform</div>
+        </div>
+
+        <div class="content">
+            <h1 class="welcome-title">🎉 Welcome to Saint Vision!</h1>
+            
+            <p class="confirmation-text">
+                Thank you for joining our community of strategic thinkers and innovators. 
+                To complete your registration and unlock the full power of Saint Vision, 
+                please confirm your email address.
+            </p>
+
+            <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">
+                    ✨ Confirm My Account
+                </a>
+            </div>
+
+            <div class="redirect-notice">
+                <p class="redirect-text">
+                    <strong>📍 What happens next:</strong> After clicking the confirmation link above, 
+                    you'll be redirected to our welcome page at <strong>saintsal.ai/welcome</strong> 
+                    where you can complete your account setup and start exploring Saint Vision.
+                </p>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon">🚀</span>
+                    <span class="feature-text">Access to AI-powered strategic analysis tools</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎯</span>
+                    <span class="feature-text">Real-time market intelligence and insights</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <span class="feature-text">Collaborative war room for strategic planning</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔒</span>
+                    <span class="feature-text">Secure, enterprise-grade platform</span>
+                </div>
+            </div>
+
+            <div class="security-note">
+                <p class="security-text">
+                    <strong>🔐 Security Notice:</strong> This confirmation link will expire in 24 hours. 
+                    If you didn't create an account with Saint Vision, please ignore this email.
+                </p>
+            </div>
+
+            <div class="alternative-link">
+                <p class="alternative-text">
+                    <strong>Having trouble clicking the button?</strong><br>
+                    Copy and paste this link into your browser:<br>
+                    {{ .ConfirmationURL }}
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Saint Vision</strong> - Empowering Strategic Intelligence<br>
+                This email was sent to confirm your account registration.<br>
+                After confirmation, you'll be redirected to saintsal.ai/welcome
+            </p>
+        </div>
+    </div>
+</body>
+</html>
