@@ -73,11 +73,31 @@ function AuthForm() {
     setError('');
     
     try {
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
-      router.push(redirectTo);
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) {
+        console.error('Anonymous sign-in error:', error);
+        throw error;
+      }
+      
+      if (data.session) {
+        router.push(redirectTo);
+      } else {
+        throw new Error('Failed to create anonymous session');
+      }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      let errorMessage = 'An error occurred';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Provide user-friendly error messages
+        if (errorMessage.includes('Invalid API key')) {
+          errorMessage = 'Configuration error. Please contact support.';
+        }
+      }
+      
+      setError(errorMessage);
+      console.error('Anonymous auth error:', error);
     } finally {
       setIsLoading(false);
     }

@@ -4,7 +4,22 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://euxrlpuegeiggedqbkiv.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 'sb_publishable_tGG4-ywayJf16tf0ZI0xSw_wDg1oG5r';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Validate configuration
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Supabase configuration missing!');
+  console.error('URL:', supabaseUrl ? '✅' : '❌');
+  console.error('Key:', supabaseAnonKey ? '✅' : '❌');
+}
+
+// Create Supabase client with better error handling
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  }
+});
 
 // Helper function to get auth token with refresh
 export const getAuthToken = async (): Promise<string | null> => {
