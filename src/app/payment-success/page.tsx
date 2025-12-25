@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { userService } from '../../services/userService';
+import { profileService } from '../../services/profileService';
 import { CheckCircle, Loader2, AlertCircle, ArrowRight, Sparkles, Clock } from 'lucide-react';
 import * as motion from "motion/react-client";
 
@@ -27,10 +28,11 @@ function PaymentSuccessContent() {
   // Get tier display name
   const getTierDisplayName = (tierId: string) => {
     const tierNames: { [key: string]: string } = {
-      'free': 'Free',
-      'unlimited': 'Unlimited',
-      'pro': 'Pro / PartnerTech.Ai',
-      'enterprise': 'Enterprise',
+      'free': 'SaintSal™ FREE',
+      'starter': 'SaintSal™ Starter - Unlimited',
+      'pro': '🏆 SaintSal™ PRO',
+      'teams': '🌟 SaintSal™ Ai Pro – Teams',
+      'enterprise': '🕋 SaintSal™ Custom Enterprise Systems',
       'white-label': 'White Label',
       'custom': 'Custom',
     };
@@ -80,49 +82,24 @@ function PaymentSuccessContent() {
         return;
       }
 
-      // If not verified, call backend verification endpoint
-      console.log('[PAYMENT SUCCESS] Payment not verified by backend, calling verify endpoint...');
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://saintsal-backend-0mv8.onrender.com';
+      // Update tier directly in Supabase using profileService
+      console.log('[PAYMENT SUCCESS] Updating tier in Supabase:', paymentData.tier);
       
-      console.log('[PAYMENT SUCCESS] Calling:', `${backendUrl}/api/payments/verify`);
-      console.log('[PAYMENT SUCCESS] With data:', {
-        session_id: paymentData.sessionId,
-        role: paymentData.role,
-        tier: paymentData.tier,
-        user_id: session.user.id
-      });
-      
-      const response = await fetch(`${backendUrl}/api/payments/verify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          session_id: paymentData.sessionId,
-          role: paymentData.role,
-          tier: paymentData.tier
-        })
-      });
+      const tierUpdated = await profileService.updateTier(
+        paymentData.tier as 'free' | 'starter' | 'pro' | 'teams' | 'enterprise'
+      );
 
-      console.log('[PAYMENT SUCCESS] Verify response status:', response.status);
-      const result = await response.json();
-      console.log('[PAYMENT SUCCESS] Verify response:', result);
-
-      if (result.success) {
+      if (tierUpdated) {
+        console.log('[PAYMENT SUCCESS] Tier updated successfully in Supabase');
         setRoleUpdateStatus('success');
         
-        // Refresh user session if required
-        if (result.requiresSessionRefresh) {
-          await userService.refreshUserSession();
-        }
-        
-        // Start countdown timer
+        // Start countdown timer to redirect to homepage
         setCountdown(3);
         const countdownInterval = setInterval(() => {
           setCountdown(prev => {
             if (prev === null || prev <= 1) {
               clearInterval(countdownInterval);
+              console.log('[PAYMENT SUCCESS] Redirecting to homepage...');
               router.push('/');
               return null;
             }
@@ -130,7 +107,7 @@ function PaymentSuccessContent() {
           });
         }, 667); // ~667ms per count to fit 3 counts in 2 seconds
       } else {
-        throw new Error(result.error || 'Role update failed');
+        throw new Error('Failed to update tier in database');
       }
     } catch (error) {
       console.error('Role update error:', error);
@@ -143,21 +120,21 @@ function PaymentSuccessContent() {
 
   // Extract payment data from URL parameters
   useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    const role = searchParams.get('role');
-    const tier = searchParams.get('tier');
-    const status = searchParams.get('status');
+    const sessionId = searchParams.get('session_id') || searchParams.get('transaction_id') || `ghl_${Date.now()}`;
+    const plan = searchParams.get('plan');
+    const tier = searchParams.get('tier') || plan || 'starter';
+    const status = searchParams.get('status') || 'completed';
 
-    if (sessionId) {
+    // For GHL payments, we may not have session_id, so we create one
+    if (plan || tier) {
       setPaymentData({
         sessionId,
-        role: role || 'unlimited', // Default role if not provided
-        tier: tier || 'unlimited', // Default tier if not provided
+        role: tier, // Use tier as role
+        tier: tier, // Use tier
         status: status as 'verified' | 'pending_verification' | 'completed' | undefined
       });
     } else {
-      // Check if this is a direct access (no session_id)
-      // This could happen if user bookmarked the success page
+      // Check if this is a direct access (no payment data)
       setError('No payment session found. If you completed a payment, please contact support.');
     }
   }, [searchParams]);

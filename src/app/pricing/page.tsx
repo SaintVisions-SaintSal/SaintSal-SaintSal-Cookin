@@ -34,99 +34,105 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     id: 'free',
-    name: 'Free Access (Limited)',
+    name: 'SaintSal™ FREE',
     price: '$0',
     description: 'Perfect for getting started with AI assistance',
     features: [
-      'Basic AI chat functionality',
-      'Limited daily interactions',
+      '50 monthly requests',
+      'Basic AI models (GPT-4o-mini)',
       'Standard response time',
       'Community support',
       'Basic features access'
     ],
     buttonText: 'Get Started Free',
-    paymentUrl: 'https://buy.stripe.com/7sY5kDdmc2Ype0YdTe4Vy03',
+    paymentUrl: 'https://buy.gohighlevel.com/694671739e4922feddcc3e1e',
     icon: Zap,
     color: 'from-gray-500 to-gray-600'
   },
   {
-    id: 'unlimited',
-    name: 'Unlimited',
+    id: 'starter',
+    name: '🫧 SaintSal™ Starter - Unlimited',
     price: '$27',
-    description: 'Unlimited access to all AI features',
+    description: 'Unlimited access to core AI features',
     features: [
-      'Unlimited AI interactions',
+      '500 monthly requests',
+      'Advanced AI models (GPT-4o-mini, GPT-4o)',
+      'Voice capabilities',
       'Priority response time',
-      'Advanced AI models',
       'Email support',
-      'All basic features',
-      'Custom AI agents'
+      'All basic features'
     ],
     buttonText: 'Start Unlimited',
-    paymentUrl: 'https://buy.stripe.com/14A9ATgyogPf0a84iE4Vy09',
+    paymentUrl: 'https://buy.gohighlevel.com/69464c136d52f05832acd6d5',
     icon: Star,
     color: 'from-blue-500 to-blue-600'
   },
   {
     id: 'pro',
-    name: 'Pro',
+    name: '🏆 SaintSal™ PRO',
     price: '$97',
-    originalPrice: '$197',
     description: 'Professional AI solutions for businesses',
     features: [
-      'Everything in Unlimited',
-      'Advanced analytics',
+      '2,000 monthly requests',
+      'All AI models (GPT-4o, Claude-3, Gemini)',
+      'Voice capabilities',
+      'WarRoom access',
       'API access',
       'Priority support',
-      'Custom integrations',
-      'Team collaboration',
-      'Advanced security'
+      'Advanced analytics',
+      'Custom integrations'
     ],
     buttonText: 'Get Pro',
-    paymentUrl: 'https://buy.stripe.com/bJefZh0zqdD3aOMdTe4Vy05',
+    paymentUrl: 'https://buy.gohighlevel.com/694677961e9e6a5435be0d10',
     isPopular: true,
     icon: Building,
     color: 'from-yellow-500 to-orange-500'
   },
   {
     id: 'teams',
-    name: 'SaintVision™ Ai Pro - Teams',
+    name: '🌟 SaintSal™ Ai Pro – Teams',
     price: '$297',
-    description: 'Team collaboration with 5 seats included',
+    description: 'Team collaboration with 10 seats included',
     features: [
-      'Everything in Pro',
-      '5 team member seats',
+      '10,000 monthly requests',
+      'All AI models',
+      'Voice capabilities',
+      'WarRoom access',
+      '10 team member seats',
       'Team management dashboard',
       'Shared AI resources',
-      'Collaborative workflows',
       'Team analytics',
       'Admin controls',
       'Bulk operations'
     ],
     buttonText: 'Get Teams',
-    paymentUrl: 'https://buy.stripe.com/8wM9ATgyogPf0a8eUY4Vy0',
+    paymentUrl: 'https://buy.gohighlevel.com/69467a30d0aaf6f7a96a8d9b',
     icon: Users,
     color: 'from-purple-500 to-purple-600'
   },
   {
     id: 'enterprise',
-    name: 'Custom Enterprise Systems',
-    price: 'Contact Sales',
-    description: 'Enterprise-grade AI solutions with custom pricing',
+    name: '🕋 SaintSal™ Custom Enterprise Systems',
+    price: '$497',
+    description: 'Enterprise-grade AI solutions with unlimited capabilities',
     features: [
-      'Everything in Teams',
+      'Unlimited requests (999,999+)',
+      'All AI models + custom training',
+      'Voice capabilities',
+      'WarRoom access',
       'Unlimited team seats',
       'Dedicated account manager',
-      'Custom AI training',
-      'SLA guarantees',
-      'On-premise deployment',
-      'Advanced compliance',
-      '24/7 phone support',
-      'Custom integrations',
-      'Tailored solutions'
+      'Custom AI training & fine-tuning',
+      '99.9% SLA guarantees',
+      'On-premise deployment options',
+      'Advanced compliance (HIPAA, SOC2, GDPR)',
+      '24/7 priority phone support',
+      'Custom integrations & API access',
+      'White-label solutions',
+      '$100 complimentary credits monthly'
     ],
     buttonText: 'Buy Now',
-    paymentUrl: 'https://buy.stripe.com/8wMeY9gage6j7eg4gh',
+    paymentUrl: 'https://buy.gohighlevel.com/69467bdcccecbd04ba5f18a7',
     icon: Building,
     color: 'from-gray-600 to-gray-800'
   }
@@ -155,23 +161,22 @@ export default function PricingPage() {
     setError(null);
     
     try {
-      // For enterprise, open contact modal
-      if (tier.id === 'enterprise') {
-        setIsEnterpriseModalOpen(true);
-        setIsProcessing(false);
-        setSelectedTier(null);
-        return;
-      }
+      // For all GHL payments, redirect to GHL payment page
+      // After payment, GHL will redirect back to homepage
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const successUrl = `${siteUrl}/payment-success?plan=${tier.id}&tier=${tier.id}`;
+      const cancelUrl = `${siteUrl}/pricing`;
       
-      // For teams, redirect to external pricing page
-      if (tier.id === 'teams') {
-        window.open(tier.paymentUrl, '_blank', 'noopener,noreferrer');
-        setTimeout(() => {
-          setIsProcessing(false);
-          setSelectedTier(null);
-        }, 2000);
-        return;
-      }
+      // Build GHL payment URL with redirect parameters
+      const ghlUrl = new URL(tier.paymentUrl);
+      ghlUrl.searchParams.set('success_url', encodeURIComponent(successUrl));
+      ghlUrl.searchParams.set('cancel_url', encodeURIComponent(cancelUrl));
+      
+      // Redirect to GHL payment page
+      window.location.href = ghlUrl.toString();
+      setIsProcessing(false);
+      setSelectedTier(null);
+      return;
 
       // For other tiers, redirect to Stripe with success/cancel URLs pointing to backend
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://saintsal-backend-0mv8.onrender.com';
@@ -250,7 +255,7 @@ export default function PricingPage() {
             <p className="text-gray-400">Perfect for individuals and small teams</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-            {pricingTiers.filter(tier => ['free', 'unlimited', 'pro'].includes(tier.id)).map((tier, index) => (
+            {pricingTiers.filter(tier => ['free', 'starter', 'pro'].includes(tier.id)).map((tier, index) => (
             <motion.div
               key={tier.id}
               className={`relative bg-gray-800/50 rounded-2xl p-6 border-2 transition-all duration-300 flex flex-col h-full ${
