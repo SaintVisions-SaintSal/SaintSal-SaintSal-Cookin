@@ -53,13 +53,25 @@ function AuthForm() {
         if (error) throw error;
         setSuccess('Check your email for the confirmation link!');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
-        router.push(redirectTo);
+        if (error) {
+          console.error('Sign in error:', error);
+          // Check if it's a configuration issue
+          if (error.message.includes('Invalid API key') || error.message.includes('JWT')) {
+            throw new Error('Configuration error: Please check that environment variables are set correctly in Vercel and redeploy.');
+          }
+          throw error;
+        }
+
+        if (data.session) {
+          router.push(redirectTo);
+        } else {
+          throw new Error('Failed to create session. Please try again.');
+        }
       }
     } catch (error: unknown) {
       let errorMessage = 'An error occurred';
