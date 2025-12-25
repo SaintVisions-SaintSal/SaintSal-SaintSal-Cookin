@@ -6,7 +6,12 @@ export interface Profile {
   full_name?: string;
   tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise';
   role: 'user' | 'admin' | 'super_admin';
+  ghl_contact_id?: string;
+  ghl_location_id?: string;
   stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  monthly_requests: number;
+  request_limit: number;
   created_at: string;
   updated_at: string;
 }
@@ -56,18 +61,44 @@ class ProfileService {
   /**
    * Update user tier (called after successful payment)
    */
-  async updateTier(tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise', stripeCustomerId?: string): Promise<boolean> {
+  async updateTier(
+    tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise',
+    options?: {
+      stripeCustomerId?: string;
+      stripeSubscriptionId?: string;
+      ghlContactId?: string;
+      ghlLocationId?: string;
+    }
+  ): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
+
+      // Get tier limits to update request_limit
+      const tierLimits = this.getTierLimits(tier);
 
       const updateData: any = {
         tier,
         updated_at: new Date().toISOString()
       };
 
-      if (stripeCustomerId) {
-        updateData.stripe_customer_id = stripeCustomerId;
+      // Update request_limit based on tier
+      if (tierLimits) {
+        updateData.request_limit = tierLimits.monthly_requests;
+      }
+
+      // Add optional fields
+      if (options?.stripeCustomerId) {
+        updateData.stripe_customer_id = options.stripeCustomerId;
+      }
+      if (options?.stripeSubscriptionId) {
+        updateData.stripe_subscription_id = options.stripeSubscriptionId;
+      }
+      if (options?.ghlContactId) {
+        updateData.ghl_contact_id = options.ghlContactId;
+      }
+      if (options?.ghlLocationId) {
+        updateData.ghl_location_id = options.ghlLocationId;
       }
 
       const { error } = await supabase
@@ -89,7 +120,95 @@ class ProfileService {
   }
 
   /**
-   * Get tier limits (static mapping since tier_limits table may not exist)
+   * Check if user can make a request based on their tier
+   */
+  async canMakeRequest(): Promise<{ canMake: boolean; remaining: number; limit: number }> {
+    try {
+      const profile = await this.getProfile();
+      if (!profile) {
+        return { canMake: false, remaining: 0, limit: 0 };
+      }
+
+      // Enterprise has unlimited (999999)
+      if (profile.tier === 'enterprise' || profile.request_limit >= 999999) {
+        return { canMake: true, remaining: -1, limit: -1 };
+      }
+
+      const remaining = profile.request_limit - profile.monthly_requests;
+      return {
+        canMake: remaining > 0,
+        remaining: Math.max(0, remaining),
+        limit: profile.request_limit
+      };
+    } catch (error) {
+      console.error('Error checking request limit:', error);
+      return { canMake: false, remaining: 0, limit: 0 };
+    }
+  }
+
+  /**
+   * Increment monthly request count
+   */
+  async incrementRequestCount(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      // Get current profile
+      const profile = await this.getProfile();
+      if (!profile) return false;
+
+      // Increment monthly_requests
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          monthly_requests: profile.monthly_requests + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error incrementing requests:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error incrementing request count:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Reset monthly request count (for new billing cycle)
+   */
+  async resetMonthlyRequests(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          monthly_requests: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error resetting monthly requests:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error resetting monthly requests:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get tier limits (static mapping)
    */
   getTierLimits(tier: string): TierLimits | null {
     const tierLimitsMap: Record<string, TierLimits> = {
