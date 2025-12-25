@@ -6,12 +6,7 @@ export interface Profile {
   full_name?: string;
   tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise';
   role: 'user' | 'admin' | 'super_admin';
-  ghl_contact_id?: string;
-  ghl_location_id?: string;
   stripe_customer_id?: string;
-  stripe_subscription_id?: string;
-  monthly_requests: number;
-  request_limit: number;
   created_at: string;
   updated_at: string;
 }
@@ -61,7 +56,7 @@ class ProfileService {
   /**
    * Update user tier (called after successful payment)
    */
-  async updateTier(tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise', ghlContactId?: string): Promise<boolean> {
+  async updateTier(tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise', stripeCustomerId?: string): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
@@ -71,19 +66,8 @@ class ProfileService {
         updated_at: new Date().toISOString()
       };
 
-      if (ghlContactId) {
-        updateData.ghl_contact_id = ghlContactId;
-      }
-
-      // Get tier limits to update request_limit
-      const { data: tierData } = await supabase
-        .from('tier_limits')
-        .select('monthly_requests')
-        .eq('tier', tier)
-        .single();
-
-      if (tierData) {
-        updateData.request_limit = tierData.monthly_requests;
+      if (stripeCustomerId) {
+        updateData.stripe_customer_id = stripeCustomerId;
       }
 
       const { error } = await supabase
@@ -96,6 +80,7 @@ class ProfileService {
         return false;
       }
 
+      console.log('✅ Tier updated successfully:', tier);
       return true;
     } catch (error) {
       console.error('Error updating tier:', error);
@@ -104,88 +89,53 @@ class ProfileService {
   }
 
   /**
-   * Get tier limits for a specific tier
+   * Get tier limits (static mapping since tier_limits table may not exist)
    */
-  async getTierLimits(tier: string): Promise<TierLimits | null> {
-    try {
-      const { data, error } = await supabase
-        .from('tier_limits')
-        .select('*')
-        .eq('tier', tier)
-        .single();
-
-      if (error) {
-        console.error('Error fetching tier limits:', error);
-        return null;
+  getTierLimits(tier: string): TierLimits | null {
+    const tierLimitsMap: Record<string, TierLimits> = {
+      'free': {
+        tier: 'free',
+        monthly_requests: 50,
+        price_monthly: 0,
+        price_annual: 0,
+        ghl_product_id: '694671739e4922feddcc3e1e',
+        features: { models: ['gpt-4o-mini'], voice: false, warroom: false }
+      },
+      'starter': {
+        tier: 'starter',
+        monthly_requests: 500,
+        price_monthly: 27,
+        price_annual: 270,
+        ghl_product_id: '69464c136d52f05832acd6d5',
+        features: { models: ['gpt-4o-mini', 'gpt-4o'], voice: true, warroom: false }
+      },
+      'pro': {
+        tier: 'pro',
+        monthly_requests: 2000,
+        price_monthly: 97,
+        price_annual: 970,
+        ghl_product_id: '694677961e9e6a5435be0d10',
+        features: { models: ['gpt-4o', 'claude-3', 'gemini'], voice: true, warroom: true }
+      },
+      'teams': {
+        tier: 'teams',
+        monthly_requests: 10000,
+        price_monthly: 297,
+        price_annual: 2970,
+        ghl_product_id: '69467a30d0aaf6f7a96a8d9b',
+        features: { models: 'all', voice: true, warroom: true, team_size: 10 }
+      },
+      'enterprise': {
+        tier: 'enterprise',
+        monthly_requests: 999999,
+        price_monthly: 497,
+        price_annual: 4970,
+        ghl_product_id: '69467bdcccecbd04ba5f18a7',
+        features: { models: 'all', voice: true, warroom: true, team_size: 'unlimited', custom: true }
       }
+    };
 
-      return data as TierLimits;
-    } catch (error) {
-      console.error('Error getting tier limits:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Check if user can make a request based on their tier
-   */
-  async canMakeRequest(): Promise<{ canMake: boolean; remaining: number; limit: number }> {
-    try {
-      const profile = await this.getProfile();
-      if (!profile) {
-        return { canMake: false, remaining: 0, limit: 0 };
-      }
-
-      // Enterprise has unlimited (999999)
-      if (profile.tier === 'enterprise' || profile.request_limit >= 999999) {
-        return { canMake: true, remaining: -1, limit: -1 };
-      }
-
-      const remaining = profile.request_limit - profile.monthly_requests;
-      return {
-        canMake: remaining > 0,
-        remaining: Math.max(0, remaining),
-        limit: profile.request_limit
-      };
-    } catch (error) {
-      console.error('Error checking request limit:', error);
-      return { canMake: false, remaining: 0, limit: 0 };
-    }
-  }
-
-  /**
-   * Increment monthly request count
-   */
-  async incrementRequestCount(): Promise<boolean> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { error } = await supabase.rpc('increment_monthly_requests', {
-        user_id: user.id
-      });
-
-      if (error) {
-        // Fallback: manual update
-        const profile = await this.getProfile();
-        if (profile) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ monthly_requests: profile.monthly_requests + 1 })
-            .eq('id', user.id);
-
-          if (updateError) {
-            console.error('Error incrementing requests:', updateError);
-            return false;
-          }
-        }
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error incrementing request count:', error);
-      return false;
-    }
+    return tierLimitsMap[tier] || null;
   }
 }
 
