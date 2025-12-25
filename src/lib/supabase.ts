@@ -1,9 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Updated Supabase connection - New instance
-// Support both NEXT_PUBLIC_ prefixed (for browser) and direct Supabase sync (for server)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://euxrlpuegeiggedqbkiv.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 'sb_publishable_tGG4-ywayJf16tf0ZI0xSw_wDg1oG5r';
+// Support multiple naming conventions for Vercel-Supabase integration
+const supabaseUrl = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 
+  process.env.SUPABASE_URL || 
+  'https://euxrlpuegeiggedqbkiv.supabase.co';
+
+const supabaseAnonKey = 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
+  process.env.SUPABASE_ANON_KEY || 
+  process.env.SUPABASE_PUBLISHABLE_API_KEY ||
+  'sb_publishable_tGG4-ywayJf16tf0ZI0xSw_wDg1oG5r';
 
 // Validate configuration
 if (!supabaseUrl || !supabaseAnonKey) {
