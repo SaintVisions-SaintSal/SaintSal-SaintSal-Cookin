@@ -12,6 +12,7 @@ export interface Profile {
   stripe_subscription_id?: string;
   monthly_requests: number;
   request_limit: number;
+  last_request_reset?: string; // DATE field
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +60,60 @@ class ProfileService {
   }
 
   /**
-   * Update user tier (called after successful payment)
+   * Update user tier via secure Edge Function (recommended for GHL payments)
+   * Uses Edge Function to validate GHL product ID and update tier securely
+   */
+  async updateTierViaEdgeFunction(
+    ghlProductId: string,
+    options?: {
+      ghlContactId?: string;
+      ghlLocationId?: string;
+    }
+  ): Promise<{ success: boolean; error?: string; data?: any }> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return { success: false, error: 'Missing Supabase configuration' };
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/ghl-update-tier`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey
+        },
+        body: JSON.stringify({
+          ghl_product_id: ghlProductId,
+          ghl_contact_id: options?.ghlContactId,
+          ghl_location_id: options?.ghlLocationId
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return { success: false, error: errorData.error || 'Failed to update tier' };
+      }
+
+      const result = await response.json();
+      console.log('✅ Tier updated via Edge Function:', result);
+      return { success: true, data: result.data };
+    } catch (error) {
+      console.error('Error updating tier via Edge Function:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Update user tier directly (fallback method, less secure)
+   * Use updateTierViaEdgeFunction for GHL payments instead
    */
   async updateTier(
     tier: 'free' | 'starter' | 'pro' | 'teams' | 'enterprise',
@@ -191,6 +245,7 @@ class ProfileService {
         .from('profiles')
         .update({ 
           monthly_requests: 0,
+          last_request_reset: new Date().toISOString().split('T')[0], // DATE format
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -203,6 +258,29 @@ class ProfileService {
       return true;
     } catch (error) {
       console.error('Error resetting monthly requests:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if monthly requests need to be reset (new month)
+   */
+  async checkAndResetIfNeeded(): Promise<boolean> {
+    try {
+      const profile = await this.getProfile();
+      if (!profile) return false;
+
+      const today = new Date().toISOString().split('T')[0];
+      const lastReset = profile.last_request_reset || profile.created_at.split('T')[0];
+      
+      // If last reset was in a different month, reset
+      if (lastReset !== today) {
+        return await this.resetMonthlyRequests();
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error checking monthly reset:', error);
       return false;
     }
   }
