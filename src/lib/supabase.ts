@@ -19,6 +19,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Supabase configuration missing!');
   console.error('URL:', supabaseUrl ? '✅' : '❌');
   console.error('Key:', supabaseAnonKey ? '✅' : '❌');
+  console.error('Available env vars:', {
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+  });
 }
 
 // Create Supabase client with better error handling
