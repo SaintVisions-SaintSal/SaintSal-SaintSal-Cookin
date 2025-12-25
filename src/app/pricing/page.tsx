@@ -161,59 +161,9 @@ export default function PricingPage() {
     setError(null);
     
     try {
-      // For all GHL payments, redirect to GHL payment page
-      // After payment, GHL will redirect back to homepage
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const successUrl = `${siteUrl}/payment-success?plan=${tier.id}&tier=${tier.id}`;
-      const cancelUrl = `${siteUrl}/pricing`;
-      
-      // Build GHL payment URL with redirect parameters
-      const ghlUrl = new URL(tier.paymentUrl);
-      ghlUrl.searchParams.set('success_url', encodeURIComponent(successUrl));
-      ghlUrl.searchParams.set('cancel_url', encodeURIComponent(cancelUrl));
-      
-      // Redirect to GHL payment page
-      window.location.href = ghlUrl.toString();
-      setIsProcessing(false);
-      setSelectedTier(null);
-      return;
-
-      // For other tiers, redirect to Stripe with success/cancel URLs pointing to backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://saintsal-backend-0mv8.onrender.com';
-      
-      // Get current user session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        setError('Error getting user session. Please try logging in again.');
-        setIsProcessing(false);
-        setSelectedTier(null);
-        return;
-      }
-      
-      const userId = session?.user?.id || '';
-      
-      if (!userId) {
-        setError('Please log in before making a payment.');
-        setIsProcessing(false);
-        setSelectedTier(null);
-        setTimeout(() => {
-          router.push('/auth');
-        }, 2000);
-        return;
-      }
-      
-      // Create success URL with only session_id and role
-      const successUrl = `${backendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&role=${tier.id}`;
-      const cancelUrl = `${backendUrl}/payment-cancelled`;
-      
-      // Create Stripe payment URL with success and cancel redirects
-      const stripeUrl = new URL(tier.paymentUrl);
-      stripeUrl.searchParams.set('success_url', successUrl);
-      stripeUrl.searchParams.set('cancel_url', cancelUrl);
-      
-      // Redirect to Stripe payment page
-      window.location.href = stripeUrl.toString();
+      // For all GHL payments, redirect directly to GHL payment link
+      // GHL will handle the success/cancel redirects back to our app
+      window.location.href = tier.paymentUrl;
       
     } catch (error) {
       setError('Failed to open payment page. Please try again.');
