@@ -54,10 +54,27 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ### Production Environment Variables
 
-When deploying to production, make sure to set the following environment variables in your deployment platform:
+When deploying to production, make sure to set the following environment variables in your deployment platform (Vercel):
 
 - `NEXT_PUBLIC_BACKEND_URL`: Set to your production backend URL (e.g., `https://saintsal-backend-0mv8.onrender.com`)
 - `NEXT_PUBLIC_GOOGLE_CLOUD_API_KEY`: Your Google Cloud API key for Gemini TTS
 - `NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID`: Your Google Cloud project ID
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `NEXT_PUBLIC_SITE_URL`: Your production domain URL (for SEO metadata)
 
 **Important**: The app will fallback to the production backend URL if `NEXT_PUBLIC_BACKEND_URL` is not set, but it's recommended to explicitly set this environment variable for clarity and consistency.
+
+## Production Deployment
+
+This application is production-ready with the following features:
+
+- ✅ Error handling (404, error boundaries, loading states)
+- ✅ Security headers (HSTS, X-Frame-Options, CSP, etc.)
+- ✅ SEO optimization (metadata, Open Graph, Twitter Cards)
+- ✅ Health check endpoint (`/api/health`)
+- ✅ Production logging
+- ✅ Environment variable validation
+- ✅ Optimized caching and compression
+
+See [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) for detailed deployment instructions.

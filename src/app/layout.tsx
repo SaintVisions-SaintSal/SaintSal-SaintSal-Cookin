@@ -21,8 +21,66 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "SaintSal™ - Cookin' Knowledge",
+  title: {
+    default: "SaintSal™ - Cookin' Knowledge",
+    template: "%s | SaintSal™",
+  },
   description: "SaintSal™ provides innovative digital solutions for faith communities, connecting believers worldwide through technology.",
+  keywords: [
+    "AI assistant",
+    "faith technology",
+    "digital solutions",
+    "church management",
+    "faith community",
+    "AI chat",
+    "agent hub",
+    "web assistant",
+  ],
+  authors: [{ name: "SaintSal™" }],
+  creator: "SaintSal™",
+  publisher: "SaintSal™",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://saintsal.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: "SaintSal™",
+    title: "SaintSal™ - Cookin' Knowledge",
+    description: "SaintSal™ provides innovative digital solutions for faith communities, connecting believers worldwide through technology.",
+    images: [
+      {
+        url: '/logo.png',
+        width: 1200,
+        height: 630,
+        alt: "SaintSal™ Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "SaintSal™ - Cookin' Knowledge",
+    description: "SaintSal™ provides innovative digital solutions for faith communities, connecting believers worldwide through technology.",
+    images: ['/logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',

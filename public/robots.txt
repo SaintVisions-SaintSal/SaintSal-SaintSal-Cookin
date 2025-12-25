@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin and private routes
+Disallow: /admin
+Disallow: /account
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://saintsal.com/sitemap.xml
+
