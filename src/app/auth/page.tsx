@@ -62,7 +62,25 @@ function AuthForm() {
         router.push(redirectTo);
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      let errorMessage = 'An error occurred';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Provide user-friendly error messages
+        if (errorMessage.includes('Invalid API key') || errorMessage.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (errorMessage.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and confirm your account before signing in.';
+        } else if (errorMessage.includes('User not found')) {
+          errorMessage = 'No account found with this email. Please sign up first.';
+        } else if (errorMessage.includes('Password')) {
+          errorMessage = 'Invalid password. Please try again or reset your password.';
+        }
+      }
+      
+      setError(errorMessage);
+      console.error('Auth error:', error);
     } finally {
       setIsLoading(false);
     }
