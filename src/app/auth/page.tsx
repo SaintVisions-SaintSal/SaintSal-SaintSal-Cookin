@@ -60,31 +60,14 @@ function AuthForm() {
 
         if (error) {
           console.error('Sign in error:', error);
-          console.error('Error details:', {
-            message: error.message,
-            status: error.status,
-            name: error.name
-          });
-          
-          // Provide specific error messages
+          // Check if it's a configuration issue
           if (error.message.includes('Invalid API key') || error.message.includes('JWT')) {
-            throw new Error('Configuration error: Missing NEXT_PUBLIC_SUPABASE_URL in Vercel. Add it and redeploy.');
+            throw new Error('Configuration error: Please check that environment variables are set correctly in Vercel and redeploy.');
           }
-          if (error.message.includes('Invalid login credentials')) {
-            throw new Error('Invalid email or password. If you don\'t have an account, please sign up first.');
-          }
-          if (error.message.includes('Email not confirmed')) {
-            throw new Error('Please check your email and confirm your account before signing in.');
-          }
-          if (error.message.includes('User not found')) {
-            throw new Error('No account found. Please sign up first by clicking "Sign up" below.');
-          }
-          
           throw error;
         }
 
         if (data.session) {
-          console.log('✅ Sign in successful!', data.user?.email);
           router.push(redirectTo);
         } else {
           throw new Error('Failed to create session. Please try again.');
