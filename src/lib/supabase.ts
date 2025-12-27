@@ -14,11 +14,28 @@ const supabaseAnonKey =
   process.env.SUPABASE_PUBLISHABLE_API_KEY ||
   'sb_publishable_tGG4-ywayJf16tf0ZI0xSw_wDg1oG5r';
 
-// Validate configuration
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Supabase configuration missing!');
-  console.error('URL:', supabaseUrl ? '✅' : '❌');
-  console.error('Key:', supabaseAnonKey ? '✅' : '❌');
+// Validate configuration - Log detailed info for debugging
+if (typeof window !== 'undefined') {
+  // Only log in browser (client-side)
+  console.log('🔍 Supabase Configuration Check:');
+  console.log('URL:', supabaseUrl || '❌ MISSING');
+  console.log('Key:', supabaseAnonKey ? '✅ Set (length: ' + supabaseAnonKey.length + ')' : '❌ MISSING');
+  console.log('Available env vars:', {
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+  });
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ CRITICAL: Supabase configuration missing!');
+    console.error('❌ URL:', supabaseUrl ? '✅' : '❌ MISSING - Add NEXT_PUBLIC_SUPABASE_URL in Vercel!');
+    console.error('❌ Key:', supabaseAnonKey ? '✅' : '❌ MISSING - Add NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel!');
+    console.error('📋 Fix: Go to Vercel → Settings → Environment Variables → Add missing variables → Redeploy');
+  } else {
+    console.log('✅ Supabase configuration looks good!');
+  }
 }
 
 // Create Supabase client with better error handling
