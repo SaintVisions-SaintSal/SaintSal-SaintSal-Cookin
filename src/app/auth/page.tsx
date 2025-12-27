@@ -20,6 +20,27 @@ function AuthForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
 
+  // Debug: Log Supabase configuration on page load
+  useEffect(() => {
+    console.log('🔍 ===== SUPABASE CONFIGURATION CHECK =====');
+    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL || '❌ MISSING');
+    console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ MISSING');
+    console.log('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ? '✅ Set' : '❌ MISSING');
+    console.log('SUPABASE_URL:', process.env.SUPABASE_URL || '❌ MISSING');
+    console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ MISSING');
+    
+    // Test Supabase connection
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error('❌ Supabase connection error:', error.message);
+        console.error('❌ This usually means missing NEXT_PUBLIC_SUPABASE_URL in Vercel!');
+      } else {
+        console.log('✅ Supabase connection OK');
+      }
+    });
+    console.log('🔍 ========================================');
+  }, []);
+
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
