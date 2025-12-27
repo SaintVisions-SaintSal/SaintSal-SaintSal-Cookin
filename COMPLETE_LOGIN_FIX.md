@@ -95,3 +95,4 @@ console.log('Key:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ? '
 
 **If that doesn't work, the user probably doesn't exist - sign up first!**
 
+
